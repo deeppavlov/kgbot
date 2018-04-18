@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using KudaBot;
 using KudaBot.KGBot;
 using KudaBot.Middleware;
 using Microsoft.AspNetCore.Builder;
@@ -39,8 +40,11 @@ namespace KudaBot_bfnet
             {
                 options.CredentialProvider = new ConfigurationCredentialProvider(Configuration);
                 options.Middleware.Add(new ShowTypingMiddleware());
+                options.Middleware.Add(new UserState<KGBState>(new MemoryStorage()));
                 options.Middleware.Add(new NormalizerMiddleware());
+                options.Middleware.Add(new UtteranceQueueMiddleware<KGBState>(5));
                 options.Middleware.Add(new KeywordRecognizerMiddleware(new KGBActions()));
+                // options.Middleware.Add(new DialogFlowMiddleware("696d3e14d2f44abcaf4d957d13e537a2", new KGBActions()));
             });
         }
 

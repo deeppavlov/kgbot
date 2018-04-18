@@ -26,5 +26,11 @@ namespace KudaBot.KGBot
             await ctx.SendActivity(MessageFactory.Carousel(await K.Places()));
         }
 
+        [Entity("date-time")]
+        public async Task DateTime(ITurnContext ctx, string value)
+        {
+            UserState<KGBState>.Get(ctx).AV.Add("date-time", value);
+        }
+
     }
 }

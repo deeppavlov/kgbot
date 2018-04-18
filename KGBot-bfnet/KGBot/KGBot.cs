@@ -1,5 +1,6 @@
 ﻿using Microsoft.Bot;
 using Microsoft.Bot.Builder;
+using Microsoft.Bot.Builder.Core.Extensions;
 using Microsoft.Bot.Schema;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,9 @@ namespace KudaBot.KGBot
                 {
                     await ctx.SendActivity("Hello! I am KudaGo bot! You can say <<help>> to see what you can ask");
                 }
+                // Trace state
+                var S = UserState<KGBState>.Get(ctx);
+                await ctx.SendActivity($"State: {S}");
             }
         }
     }

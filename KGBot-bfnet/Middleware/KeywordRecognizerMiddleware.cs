@@ -1,4 +1,6 @@
-﻿using Microsoft.Bot.Builder;
+﻿using KudaBot.KGBot;
+using Microsoft.Bot.Builder;
+using Microsoft.Bot.Builder.Core.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,6 +45,7 @@ namespace KudaBot.Middleware
                     {
                         if (w.Contains(((KeywordAttribute)t).Text))
                         {
+                            UserState<KGBState>.Get(context).AV.Add(((KeywordAttribute)t).Text, "1");
                             await (Task) x.Invoke(ActionClass, new object[] { context });
                             Fired = true;
                         }
