@@ -44,6 +44,7 @@ namespace KudaBot_bfnet
                 options.Middleware.Add(new NormalizerMiddleware());
                 options.Middleware.Add(new UtteranceQueueMiddleware<KGBState>(5));
                 options.Middleware.Add(new KeywordRecognizerMiddleware(new KGBActions()));
+                options.Middleware.Add(new DeepPavlovMiddleware("http://dev.ipavlov.mipt.ru:6063/kudago"));
                 // options.Middleware.Add(new DialogFlowMiddleware("696d3e14d2f44abcaf4d957d13e537a2", new KGBActions()));
             });
         }
