@@ -45,7 +45,7 @@ namespace KudaBot.Middleware
                     {
                         if (w.Contains(((KeywordAttribute)t).Text))
                         {
-                            UserState<KGBState>.Get(context).AV.Add(((KeywordAttribute)t).Text, "1");
+                            // UserState<KGBState>.Get(context).AV.Add(((KeywordAttribute)t).Text, "1");
                             await (Task) x.Invoke(ActionClass, new object[] { context });
                             Fired = true;
                         }

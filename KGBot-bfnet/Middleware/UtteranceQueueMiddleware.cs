@@ -11,7 +11,7 @@ namespace KudaBot.Middleware
     /// <summary>
     /// A class to save a queue of utterances of a given size
     /// </summary>
-    public class UtteranceQueueMiddleware<T> : IMiddleware where T: TState,new()
+    public class UtteranceQueueMiddleware<T> : MessageProcessingMiddleware where T: TState,new()
     {
         public int N { get; set; } = 5;
 
@@ -20,17 +20,19 @@ namespace KudaBot.Middleware
             this.N = N;
         }
 
-        public async Task OnTurn(ITurnContext context, MiddlewareSet.NextDelegate next)
+        public static string[] GetUtteranceHistory(T State)
+        {
+            var q = (Queue<string>)State.SysMem["UQueue"];
+            return q.Count > 0 ? q.ToArray() : null;
+        }
+
+        public async override Task OnMessage(ITurnContext context)
         {
             var SysMem = UserState<T>.Get(context).SysMem;
             if (!SysMem.ContainsKey("UQueue")) SysMem.Add("UQueue",new Queue<string>());
             var UQueue = (Queue<string>)SysMem["UQueue"];
-            await next();
-            if (context.Activity.Type == ActivityTypes.Message)
-            {
-                UQueue.Enqueue(context.Activity.Text);
-                if (UQueue.Count >= N) UQueue.Dequeue();
-            }
+            UQueue.Enqueue(context.Activity.Text);
+            if (UQueue.Count >= N) UQueue.Dequeue();
         }
     }
 }

@@ -29,7 +29,7 @@ namespace KudaBot.KGBot
         [Entity("date-time")]
         public async Task DateTime(ITurnContext ctx, string value)
         {
-            UserState<KGBState>.Get(ctx).AV.Add("date-time", value);
+            // UserState<KGBState>.Get(ctx).AV.Add("date-time", value);
         }
 
     }
