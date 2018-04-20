@@ -1,4 +1,7 @@
-﻿using System;
+﻿#define PRINT_STATE
+
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,6 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace KudaBot_bfnet
 {
+
     public class Program
     {
         public static void Main(string[] args)

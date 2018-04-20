@@ -10,15 +10,14 @@ namespace KudaBot.KGBot
 {
     public class PavlovState
     {
-        public Dictionary<string, string> slot_history { get; set; } = new Dictionary<string, string>();
+        public Dictionary<string, object> slot_history { get; set; } = new Dictionary<string, object>();
         public string last_cluster_id { get; set; } = "";
-
     }
 
     public class PavlovRequest : PavlovState
     {
-        public string utterance { get; set; } = "";
-        public string[] utter_history { get; set; } = new string[] { "" };
+        public string utterance { get; set; }
+        public string[] utter_history { get; set; }
 
         public PavlovRequest() { }
         public PavlovRequest(PavlovState S)
@@ -33,7 +32,6 @@ namespace KudaBot.KGBot
     public class KGBState : TState
     {
         public PavlovState PavlovState { get; set; } = new PavlovState();
-
         public override string ToString()
         {
             return $"PavlovState: {JsonConvert.SerializeObject(PavlovState)}, SysMem: {JsonConvert.SerializeObject(SysMem)}";

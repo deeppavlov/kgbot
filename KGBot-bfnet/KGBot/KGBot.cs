@@ -20,8 +20,10 @@ namespace KudaBot.KGBot
                     await ctx.SendActivity("Hello! I am KudaGo bot! You can say <<help>> to see what you can ask");
                 }
                 // Trace state
+#if PRINT_STATE
                 var S = UserState<KGBState>.Get(ctx);
                 await ctx.SendActivity($"State: {S}");
+#endif
             }
         }
     }

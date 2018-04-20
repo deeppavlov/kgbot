@@ -26,6 +26,22 @@ namespace KudaBot.KGBot
             await ctx.SendActivity(MessageFactory.Carousel(await K.Places()));
         }
 
+        [Keyword("/state")]
+        public async Task PrintState(ITurnContext ctx)
+        {
+            await ctx.SendActivity($"{UserState<KGBState>.Get(ctx)}");
+        }
+
+        [Keyword("/reset")]
+        public async Task ResetState(ITurnContext ctx)
+        {
+            var S = ctx.GetUserState<KGBState>();
+            S.PavlovState = new PavlovState();
+            UtteranceQueueMiddleware<KGBState>.Reset(S);
+            await ctx.SendActivity($"Ок, начинаем заново");
+        }
+
+
         [Entity("date-time")]
         public async Task DateTime(ITurnContext ctx, string value)
         {

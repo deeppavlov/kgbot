@@ -22,35 +22,76 @@ namespace KudaBot.Middleware
             this.ApiUri = ApiUri;
         }
 
+        public static CardImage[] GetImages(dynamic l, int n = 0)
+        {
+            List<CardImage> res = new List<CardImage>();
+            foreach (var x in l)
+            {
+                res.Add(new CardImage(x.ToString()));
+                if (n-- == 0) break;
+            }
+            return res.ToArray();
+        }
+
+        private List<Attachment> BuildEventsAttachment(dynamic list)
+        {
+            var L = new List<Attachment>();
+            foreach (var x in list)
+            {
+                L.Add(new HeroCard()
+                {
+                    Text = x.title.ToString(),
+                    Images = GetImages(x.images)
+                }.ToAttachment());
+            }
+            return L;
+        }
+
         public async override Task OnMessage(ITurnContext context)
         {
             var S = UserState<KGBState>.Get(context);
             var R = new PavlovRequest(S.PavlovState);
             R.utter_history = UtteranceQueueMiddleware<KGBState>.GetUtteranceHistory(S);
             R.utterance = context.Activity.Text;
+            var shown_events = S.PavlovState.slot_history.ContainsKey("shown_events") ? (List<int>)S.PavlovState.slot_history["shown_events"] : new List<int>();
+#if PRINT_STATE
             await context.SendActivity(JsonConvert.SerializeObject(S.PavlovState));
+#endif
             var http = new HttpClient();
             var s = System.Web.HttpUtility.JavaScriptStringEncode(context.Activity.Text);
             var c = new StringContent(JsonConvert.SerializeObject(R),Encoding.UTF8, "application/json");
             var resp = await http.PostAsync(ApiUri, c);
             var res = await resp.Content.ReadAsStringAsync();
+#if PRINT_STATE
             await context.SendActivity(res);
+#endif
             dynamic jres = Newtonsoft.Json.JsonConvert.DeserializeObject(res);
-            S.PavlovState.last_cluster_id = jres[2];
-            S.PavlovState.slot_history = JsonConvert.DeserializeObject<Dictionary<string, string>>(jres[1].ToString());
+            S.PavlovState.last_cluster_id = jres[3];
+            var shs = jres[2].ToString();
+            S.PavlovState.slot_history = JsonConvert.DeserializeObject<Dictionary<string, object>>(shs);
+            foreach (var t in jres[1])
+            {
+                var lid = (int)t.local_id;
+                if (!shown_events.Contains(lid)) shown_events.Add(lid);
+            }
+            if (S.PavlovState.slot_history.ContainsKey("shown_events"))
+            {
+                S.PavlovState.slot_history["shown_events"] = shown_events;
+            }
+            else
+            {
+                S.PavlovState.slot_history.Add("shown_events", shown_events);
+            }
             if (jres[0] is JValue) // this is single-line response
             {
-                await context.SendActivity((string)jres[0]);
+                var msg = MessageFactory.Carousel(BuildEventsAttachment(jres[1]));
+                msg.Text = jres[0].ToString();
+                await context.SendActivity(msg);
+                // await context.SendActivity($"{(string)jres[0]}\r\n{BuildEvents(jres[1])}");
             }
             else if (jres[0] is JArray)
             {
-                var sb = new StringBuilder();
-                sb.AppendLine("Мы рекомендуем:");
-                foreach (var x in jres[0])
-                {
-                    sb.AppendLine($" * [{x.title}]({x.url})");
-                }
-                await context.SendActivity(sb.ToString());
+                // await context.SendActivity($"Вот что мы вам рекомендуем:\r\n{BuildEvents(jres[0])}");
             }
             else
             { }

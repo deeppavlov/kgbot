@@ -26,6 +26,12 @@ namespace KudaBot.Middleware
             return q.Count > 0 ? q.ToArray() : null;
         }
 
+        public static void Reset(T State)
+        {
+            var q = (Queue<string>)State.SysMem["UQueue"];
+            q.Clear();
+        }
+
         public async override Task OnMessage(ITurnContext context)
         {
             var SysMem = UserState<T>.Get(context).SysMem;
