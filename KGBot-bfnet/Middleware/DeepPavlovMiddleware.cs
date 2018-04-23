@@ -1,4 +1,4 @@
-﻿using KudaBot.KGBot;
+using KudaBot.KGBot;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Core.Extensions;
 using Microsoft.Bot.Schema;
@@ -15,39 +15,39 @@ namespace KudaBot.Middleware
 {
     public class DeepPavlovMiddleware : MessageProcessingMiddleware
     {
-        public string ApiUri { get; set; }
+        private string ApiUri { get; set; }
 
-        public DeepPavlovMiddleware(string ApiUri)
+        public DeepPavlovMiddleware(string apiUri)
         {
-            this.ApiUri = ApiUri;
+            this.ApiUri = apiUri;
         }
 
-        public static CardImage[] GetImages(dynamic l, int n = 0)
+        private static CardImage[] GetImages(dynamic l, int n = 1)
         {
             List<CardImage> res = new List<CardImage>();
             foreach (var x in l)
             {
                 res.Add(new CardImage(x.ToString()));
-                if (n-- == 0) break;
+                if (--n == 0) break;
             }
             return res.ToArray();
         }
 
         private List<Attachment> BuildEventsAttachment(dynamic list)
         {
-            var L = new List<Attachment>();
+            var attachments = new List<Attachment>();
             foreach (var x in list)
             {
-                L.Add(new HeroCard()
+                attachments.Add(new HeroCard()
                 {
-                    Text = x.title.ToString(),
+                    Text = "[" + x.title.ToString() + "]("  + x.url.ToString() + ")",
                     Images = GetImages(x.images)
                 }.ToAttachment());
             }
-            return L;
+            return attachments;
         }
 
-        public async override Task OnMessage(ITurnContext context)
+        public override async Task OnMessage(ITurnContext context)
         {
             var S = UserState<KGBState>.Get(context);
             var R = new PavlovRequest(S.PavlovState);
