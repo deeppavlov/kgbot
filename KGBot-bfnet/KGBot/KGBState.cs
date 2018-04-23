@@ -11,7 +11,7 @@ namespace KudaBot.KGBot
     public class PavlovState
     {
         public Dictionary<string, object> slot_history { get; set; } = new Dictionary<string, object>();
-        public string last_cluster_id { get; set; } = "";
+        public string last_cluster_id { get; set; } = null;
     }
 
     public class PavlovRequest : PavlovState
