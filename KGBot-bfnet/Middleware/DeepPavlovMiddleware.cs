@@ -1,4 +1,4 @@
-using KudaBot.KGBot;
+﻿using KudaBot.KGBot;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Core.Extensions;
 using Microsoft.Bot.Schema;
@@ -53,7 +53,8 @@ namespace KudaBot.Middleware
             var R = new PavlovRequest(S.PavlovState);
             R.utter_history = UtteranceQueueMiddleware<KGBState>.GetUtteranceHistory(S);
             R.utterance = context.Activity.Text;
-            var shown_events = S.PavlovState.slot_history.ContainsKey("shown_events") ? (List<int>)S.PavlovState.slot_history["shown_events"] : new List<int>();
+            var shownEvents = S.PavlovState.slot_history.ContainsKey("shown_events") ?
+                new HashSet<int>((List<int>)S.PavlovState.slot_history["shown_events"]) : new HashSet<int>();
 #if PRINT_STATE
             await context.SendActivity(JsonConvert.SerializeObject(S.PavlovState));
 #endif
@@ -72,20 +73,25 @@ namespace KudaBot.Middleware
             foreach (var t in jres[1])
             {
                 var lid = (int)t.local_id;
-                if (!shown_events.Contains(lid)) shown_events.Add(lid);
+                shownEvents.Add(lid);
             }
-            if (S.PavlovState.slot_history.ContainsKey("shown_events"))
-            {
-                S.PavlovState.slot_history["shown_events"] = shown_events;
-            }
-            else
-            {
-                S.PavlovState.slot_history.Add("shown_events", shown_events);
-            }
+            S.PavlovState.slot_history["shown_events"] = shownEvents.ToList();
             if (jres[0] is JValue) // this is single-line response
             {
-                var msg = MessageFactory.Carousel(BuildEventsAttachment(jres[1]));
-                msg.Text = jres[0].ToString();
+                Activity msg;
+                if (jres[1].Count == 0)
+                {
+                    S.PavlovState.slot_history = new Dictionary<string, object>();
+                    UtteranceQueueMiddleware<KGBState>.Reset(S);
+                    S.PavlovState.last_cluster_id = null;
+                    
+                    msg = MessageFactory.Text(jres[0].ToString());
+                }
+                else {
+                    msg = MessageFactory.Carousel(BuildEventsAttachment(jres[1]));
+                    await context.SendActivity(msg);
+                    msg = MessageFactory.Text(jres[0].ToString());
+                }
                 await context.SendActivity(msg);
                 // await context.SendActivity($"{(string)jres[0]}\r\n{BuildEvents(jres[1])}");
             }
