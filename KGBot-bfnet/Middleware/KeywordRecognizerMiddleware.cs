@@ -34,24 +34,29 @@ namespace KudaBot.Middleware
         public async Task OnTurn(ITurnContext context, MiddlewareSet.NextDelegate next)
         {
             Fired = false;
-            var w = context.Activity.Text.Split(' ', ',', '-', '.', '!', '(', ')').Select(x => x.Trim()).Where(x => x.Length > 0);
-
-            foreach (var x in ActionClass.GetType().GetMethods())
+            if (context.Activity.Text != null)
             {
-                var A = x.GetCustomAttributes(typeof(KeywordAttribute),false);
-                if (A!=null)
+                var w = context.Activity.Text.Split(' ', ',', '-', '.', '!', '(', ')').Select(x => x.Trim())
+                    .Where(x => x.Length > 0);
+
+                foreach (var x in ActionClass.GetType().GetMethods())
                 {
-                    foreach(var t in A)
+                    var A = x.GetCustomAttributes(typeof(KeywordAttribute), false);
+                    if (A != null)
                     {
-                        if (w.Contains(((KeywordAttribute)t).Text))
+                        foreach (var t in A)
                         {
-                            // UserState<KGBState>.Get(context).AV.Add(((KeywordAttribute)t).Text, "1");
-                            await (Task) x.Invoke(ActionClass, new object[] { context });
-                            Fired = true;
+                            if (w.Contains(((KeywordAttribute) t).Text))
+                            {
+                                // UserState<KGBState>.Get(context).AV.Add(((KeywordAttribute)t).Text, "1");
+                                await (Task) x.Invoke(ActionClass, new object[] {context});
+                                Fired = true;
+                            }
                         }
                     }
                 }
             }
+
             await next();
         }
     }
